@@ -1,0 +1,15 @@
+{
+  "name": "Daily Spark — Quote Generator",
+  "short_name": "Daily Spark",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0e1a",
+  "theme_color": "#0a0e1a",
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0e1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<title>Daily Spark — Quote Generator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #0a0e1a;
+    color: #e8e8e8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+
+  .logo-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #1a3a8a, #2563eb);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .logo h1 {
+    font-family: 'Inter', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.5px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+    color: #7a8baa;
+    font-weight: 400;
+  }
+
+  .stats {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #4b5e7a;
+  }
+
+  .stats span {
+    color: #60a5fa;
+    font-weight: 600;
+  }
+
+  .quotes-container {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .quote-card {
+    background: linear-gradient(135deg, #111827, #1a2235);
+    border: 1px solid #1e2d4a;
+    border-radius: 16px;
+    padding: 32px 36px;
+    position: relative;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeIn 0.5s ease forwards;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 24px 12px; }
+    .header { margin-bottom: 28px; }
+    .logo h1 { font-size: 22px; }
+    .logo-icon { width: 40px; height: 40px; font-size: 20px; }
+    .quote-card { padding: 20px 18px; border-radius: 12px; }
+    .quote-text { font-size: 16px; }
+    .quote-author { font-size: 13px; }
+    .quote-role { font-size: 12px; }
+    .actions { flex-direction: column; gap: 10px; width: 100%; max-width: 720px; }
+    .btn { width: 100%; text-align: center; }
+  }
+
+  .quote-card.copied {
+    border-color: #16a34a;
+    background: linear-gradient(135deg, #0f1f15, #132a1a);
+  }
+
+  .quote-card:nth-child(1) { animation-delay: 0.05s; }
+  .quote-card:nth-child(2) { animation-delay: 0.12s; }
+  .quote-card:nth-child(3) { animation-delay: 0.19s; }
+  .quote-card:nth-child(4) { animation-delay: 0.26s; }
+  .quote-card:nth-child(5) { animation-delay: 0.33s; }
+
+  @keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .quote-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .quote-number {
+    font-size: 13px;
+    font-weight: 600;
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.1);
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+
+  .btn-copy {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid #1e2d4a;
+    background: #1a2235;
+    color: #7a8baa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .btn-copy:hover {
+    background: #1e2d4a;
+    color: #d1d5db;
+  }
+
+  .btn-copy.done {
+    background: rgba(22, 163, 74, 0.15);
+    border-color: #16a34a;
+    color: #4ade80;
+    pointer-events: none;
+  }
+
+  .quote-text {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 19px;
+    line-height: 1.6;
+    color: #d1d5db;
+    margin-bottom: 16px;
+  }
+
+  .quote-text::before { content: '\201C'; }
+  .quote-text::after { content: '\201D'; }
+
+  .quote-author {
+    font-size: 14px;
+    font-weight: 600;
+    color: #60a5fa;
+  }
+
+  .quote-role {
+    font-size: 13px;
+    color: #4b5e7a;
+    margin-top: 2px;
+  }
+
+  .actions {
+    margin-top: 40px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px 32px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(37, 99, 235, 0.45);
+  }
+
+  .btn-secondary {
+    background: #1a2235;
+    color: #7a8baa;
+    border: 1px solid #1e2d4a;
+  }
+
+  .btn-secondary:hover {
+    background: #1e2d4a;
+    color: #d1d5db;
+  }
+
+  .btn-danger {
+    background: #1a2235;
+    color: #f87171;
+    border: 1px solid #3b1c1c;
+  }
+
+  .btn-danger:hover {
+    background: #2a1515;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #1d4ed8;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #4b5e7a;
+  }
+
+  .empty-state h2 {
+    font-size: 22px;
+    color: #7a8baa;
+    margin-bottom: 8px;
+  }
+
+  .empty-state p {
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">DS</div>
+    <h1>Daily Spark</h1>
+  </div>
+  <p class="subtitle">Fresh inspiration, every refresh</p>
+  <p class="stats" id="stats"></p>
+</div>
+
+<div class="quotes-container" id="quotes"></div>
+
+<div class="actions">
+  <button class="btn btn-primary" onclick="refresh()">Refresh Quotes</button>
+  <button class="btn btn-secondary" onclick="resetHistory()">Reset History</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const quotes = [
+  { text: "The only way to do great work is to love what you do.", author: "Steve Jobs", role: "Co-founder, Apple" },
+  { text: "Innovation distinguishes between a leader and a follower.", author: "Steve Jobs", role: "Co-founder, Apple" },
+  { text: "Stay hungry, stay foolish.", author: "Steve Jobs", role: "Co-founder, Apple" },
+  { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill", role: "Former Prime Minister of the United Kingdom" },
+  { text: "We make a living by what we get, but we make a life by what we give.", author: "Winston Churchill", role: "Former Prime Minister of the United Kingdom" },
+  { text: "The pessimist sees difficulty in every opportunity. The optimist sees opportunity in every difficulty.", author: "Winston Churchill", role: "Former Prime Minister of the United Kingdom" },
+  { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb", role: "" },
+  { text: "A journey of a thousand miles begins with a single step.", author: "Lao Tzu", role: "Philosopher" },
+  { text: "The flame that burns twice as bright burns half as long.", author: "Lao Tzu", role: "Philosopher" },
+  { text: "When the student is ready, the teacher will appear.", author: "Lao Tzu", role: "Philosopher" },
+  { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius", role: "Philosopher" },
+  { text: "To see what is right and not do it is a lack of courage.", author: "Confucius", role: "Philosopher" },
+  { text: "Our greatest glory is not in never falling, but in rising every time we fall.", author: "Confucius", role: "Philosopher" },
+  { text: "Real knowledge is to know the extent of one's ignorance.", author: "Confucius", role: "Philosopher" },
+  { text: "In the middle of difficulty lies opportunity.", author: "Albert Einstein", role: "Physicist" },
+  { text: "Strive not to be a success, but rather to be of value.", author: "Albert Einstein", role: "Physicist" },
+  { text: "A person who never made a mistake never tried anything new.", author: "Albert Einstein", role: "Physicist" },
+  { text: "Creativity is intelligence having fun.", author: "Albert Einstein", role: "Physicist" },
+  { text: "Imagination is more important than knowledge.", author: "Albert Einstein", role: "Physicist" },
+  { text: "Life is like riding a bicycle. To keep your balance, you must keep moving.", author: "Albert Einstein", role: "Physicist" },
+  { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt", role: "Former First Lady of the United States" },
+  { text: "No one can make you feel inferior without your consent.", author: "Eleanor Roosevelt", role: "Former First Lady of the United States" },
+  { text: "Do one thing every day that scares you.", author: "Eleanor Roosevelt", role: "Former First Lady of the United States" },
+  { text: "What gets measured gets managed.", author: "Peter Drucker", role: "Management Consultant & Author" },
+  { text: "Culture eats strategy for breakfast.", author: "Peter Drucker", role: "Management Consultant & Author" },
+  { text: "The best way to predict the future is to create it.", author: "Peter Drucker", role: "Management Consultant & Author" },
+  { text: "Management is doing things right; leadership is doing the right things.", author: "Peter Drucker", role: "Management Consultant & Author" },
+  { text: "If you want to go fast, go alone. If you want to go far, go together.", author: "African Proverb", role: "" },
+  { text: "Smooth seas do not make skillful sailors.", author: "African Proverb", role: "" },
+  { text: "The greatest glory in living lies not in never falling, but in rising every time we fall.", author: "Nelson Mandela", role: "Former President of South Africa" },
+  { text: "It always seems impossible until it's done.", author: "Nelson Mandela", role: "Former President of South Africa" },
+  { text: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela", role: "Former President of South Africa" },
+  { text: "A winner is a dreamer who never gives up.", author: "Nelson Mandela", role: "Former President of South Africa" },
+  { text: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky", role: "Ice Hockey Legend" },
+  { text: "Tell me and I forget. Teach me and I remember. Involve me and I learn.", author: "Benjamin Franklin", role: "Founding Father of the United States" },
+  { text: "An investment in knowledge pays the best interest.", author: "Benjamin Franklin", role: "Founding Father of the United States" },
+  { text: "By failing to prepare, you are preparing to fail.", author: "Benjamin Franklin", role: "Founding Father of the United States" },
+  { text: "Life is what happens when you're busy making other plans.", author: "John Lennon", role: "Musician & Songwriter" },
+  { text: "The purpose of our lives is to be happy.", author: "Dalai Lama", role: "Spiritual Leader" },
+  { text: "Happiness is not something ready-made. It comes from your own actions.", author: "Dalai Lama", role: "Spiritual Leader" },
+  { text: "If you think you are too small to make a difference, try sleeping with a mosquito.", author: "Dalai Lama", role: "Spiritual Leader" },
+  { text: "Get busy living or get busy dying.", author: "Stephen King", role: "Author" },
+  { text: "You only live once, but if you do it right, once is enough.", author: "Mae West", role: "Actress" },
+  { text: "Many of life's failures are people who did not realize how close they were to success when they gave up.", author: "Thomas Edison", role: "Inventor" },
+  { text: "I have not failed. I've just found 10,000 ways that won't work.", author: "Thomas Edison", role: "Inventor" },
+  { text: "Genius is one percent inspiration and ninety-nine percent perspiration.", author: "Thomas Edison", role: "Inventor" },
+  { text: "Our greatest weakness lies in giving up. The most certain way to succeed is always to try just one more time.", author: "Thomas Edison", role: "Inventor" },
+  { text: "The mind is everything. What you think you become.", author: "Buddha", role: "Spiritual Teacher" },
+  { text: "Three things cannot be long hidden: the sun, the moon, and the truth.", author: "Buddha", role: "Spiritual Teacher" },
+  { text: "Peace comes from within. Do not seek it without.", author: "Buddha", role: "Spiritual Teacher" },
+  { text: "The only impossible journey is the one you never begin.", author: "Tony Robbins", role: "Author & Speaker" },
+  { text: "It is in your moments of decision that your destiny is shaped.", author: "Tony Robbins", role: "Author & Speaker" },
+  { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt", role: "26th President of the United States" },
+  { text: "Do what you can, with what you have, where you are.", author: "Theodore Roosevelt", role: "26th President of the United States" },
+  { text: "Speak softly and carry a big stick.", author: "Theodore Roosevelt", role: "26th President of the United States" },
+  { text: "Act as if what you do makes a difference. It does.", author: "William James", role: "Philosopher & Psychologist" },
+  { text: "The greatest discovery of any generation is that a human being can alter his life by altering his attitude.", author: "William James", role: "Philosopher & Psychologist" },
+  { text: "What lies behind us and what lies before us are tiny matters compared to what lies within us.", author: "Ralph Waldo Emerson", role: "Essayist & Philosopher" },
+  { text: "The only person you are destined to become is the person you decide to be.", author: "Ralph Waldo Emerson", role: "Essayist & Philosopher" },
+  { text: "What you do speaks so loudly that I cannot hear what you say.", author: "Ralph Waldo Emerson", role: "Essayist & Philosopher" },
+  { text: "To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment.", author: "Ralph Waldo Emerson", role: "Essayist & Philosopher" },
+  { text: "Perfection is not attainable, but if we chase perfection we can catch excellence.", author: "Vince Lombardi", role: "Football Coach" },
+  { text: "Winners never quit and quitters never win.", author: "Vince Lombardi", role: "Football Coach" },
+  { text: "The measure of who we are is what we do with what we have.", author: "Vince Lombardi", role: "Football Coach" },
+  { text: "Everything you've ever wanted is on the other side of fear.", author: "George Addair", role: "Author" },
+  { text: "We may encounter many defeats but we must not be defeated.", author: "Maya Angelou", role: "Poet & Author" },
+  { text: "I've learned that people will forget what you said, people will forget what you did, but people will never forget how you made them feel.", author: "Maya Angelou", role: "Poet & Author" },
+  { text: "If you don't like something, change it. If you can't change it, change your attitude.", author: "Maya Angelou", role: "Poet & Author" },
+  { text: "There is no greater agony than bearing an untold story inside you.", author: "Maya Angelou", role: "Poet & Author" },
+  { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney", role: "Founder, The Walt Disney Company" },
+  { text: "All our dreams can come true, if we have the courage to pursue them.", author: "Walt Disney", role: "Founder, The Walt Disney Company" },
+  { text: "Whether you think you can or you think you can't, you're right.", author: "Henry Ford", role: "Founder, Ford Motor Company" },
+  { text: "Coming together is a beginning, staying together is progress, and working together is success.", author: "Henry Ford", role: "Founder, Ford Motor Company" },
+  { text: "Don't find fault, find a remedy.", author: "Henry Ford", role: "Founder, Ford Motor Company" },
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain", role: "Author" },
+  { text: "The two most important days in your life are the day you are born and the day you find out why.", author: "Mark Twain", role: "Author" },
+  { text: "Twenty years from now you will be more disappointed by the things you didn't do than by the ones you did.", author: "Mark Twain", role: "Author" },
+  { text: "Don't be afraid to give up the good to go for the great.", author: "John D. Rockefeller", role: "Industrialist & Philanthropist" },
+  { text: "I find that the harder I work, the more luck I seem to have.", author: "Thomas Jefferson", role: "3rd President of the United States" },
+  { text: "If you want something you've never had, you must be willing to do something you've never done.", author: "Thomas Jefferson", role: "3rd President of the United States" },
+  { text: "Success usually comes to those who are too busy to be looking for it.", author: "Henry David Thoreau", role: "Philosopher & Author" },
+  { text: "Go confidently in the direction of your dreams. Live the life you have imagined.", author: "Henry David Thoreau", role: "Philosopher & Author" },
+  { text: "It is never too late to be what you might have been.", author: "George Eliot", role: "Novelist" },
+  { text: "Knowing is not enough; we must apply. Wishing is not enough; we must do.", author: "Johann Wolfgang von Goethe", role: "Writer & Polymath" },
+  { text: "Whatever you can do, or dream you can, begin it. Boldness has genius, power, and magic in it.", author: "Johann Wolfgang von Goethe", role: "Writer & Polymath" },
+  { text: "The only limit to our realization of tomorrow will be our doubts of today.", author: "Franklin D. Roosevelt", role: "32nd President of the United States" },
+  { text: "The only thing we have to fear is fear itself.", author: "Franklin D. Roosevelt", role: "32nd President of the United States" },
+  { text: "An unexamined life is not worth living.", author: "Socrates", role: "Philosopher" },
+  { text: "The only true wisdom is in knowing you know nothing.", author: "Socrates", role: "Philosopher" },
+  { text: "Strong minds discuss ideas, average minds discuss events, weak minds discuss people.", author: "Socrates", role: "Philosopher" },
+  { text: "Turn your wounds into wisdom.", author: "Oprah Winfrey", role: "Media Executive & Philanthropist" },
+  { text: "If you look at what you have in life, you'll always have more.", author: "Oprah Winfrey", role: "Media Executive & Philanthropist" },
+  { text: "The biggest adventure you can take is to live the life of your dreams.", author: "Oprah Winfrey", role: "Media Executive & Philanthropist" },
+  { text: "The best revenge is massive success.", author: "Frank Sinatra", role: "Singer & Actor" },
+  { text: "Change is the law of life. And those who look only to the past or present are certain to miss the future.", author: "John F. Kennedy", role: "35th President of the United States" },
+  { text: "Ask not what your country can do for you — ask what you can do for your country.", author: "John F. Kennedy", role: "35th President of the United States" },
+  { text: "It is during our darkest moments that we must focus to see the light.", author: "Aristotle", role: "Philosopher" },
+  { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Aristotle", role: "Philosopher" },
+  { text: "Knowing yourself is the beginning of all wisdom.", author: "Aristotle", role: "Philosopher" },
+  { text: "In order to be irreplaceable, one must always be different.", author: "Coco Chanel", role: "Fashion Designer" },
+  { text: "Nothing is impossible, the word itself says 'I'm possible'!", author: "Audrey Hepburn", role: "Actress & Humanitarian" },
+  { text: "The best thing to hold onto in life is each other.", author: "Audrey Hepburn", role: "Actress & Humanitarian" },
+  { text: "Be yourself; everyone else is already taken.", author: "Oscar Wilde", role: "Playwright & Poet" },
+  { text: "To live is the rarest thing in the world. Most people exist, that is all.", author: "Oscar Wilde", role: "Playwright & Poet" },
+  { text: "Experience is merely the name men gave to their mistakes.", author: "Oscar Wilde", role: "Playwright & Poet" },
+  { text: "The question isn't who is going to let me; it's who is going to stop me.", author: "Ayn Rand", role: "Philosopher & Author" },
+  { text: "When I dare to be powerful, to use my strength in the service of my vision, then it becomes less and less important whether I am afraid.", author: "Audre Lorde", role: "Writer & Activist" },
+  { text: "We generate fears while we sit. We overcome them by action.", author: "Dr. Henry Link", role: "Psychologist" },
+  { text: "Don't be distracted by criticism. Remember, the only taste of success some people get is to take a bite out of you.", author: "Zig Ziglar", role: "Author & Motivational Speaker" },
+  { text: "You don't have to be great to start, but you have to start to be great.", author: "Zig Ziglar", role: "Author & Motivational Speaker" },
+  { text: "We become what we think about most of the time.", author: "Earl Nightingale", role: "Author & Speaker" },
+  { text: "Never give in, never give in, never, never, never.", author: "Winston Churchill", role: "Former Prime Minister of the United Kingdom" },
+  { text: "The price of greatness is responsibility.", author: "Winston Churchill", role: "Former Prime Minister of the United Kingdom" },
+  { text: "Try not to become a man of success. Rather become a man of value.", author: "Albert Einstein", role: "Physicist" },
+  { text: "The world as we have created it is a process of our thinking. It cannot be changed without changing our thinking.", author: "Albert Einstein", role: "Physicist" },
+  { text: "I am not a product of my circumstances. I am a product of my decisions.", author: "Stephen Covey", role: "Author, The 7 Habits of Highly Effective People" },
+  { text: "Begin with the end in mind.", author: "Stephen Covey", role: "Author, The 7 Habits of Highly Effective People" },
+  { text: "The main thing is to keep the main thing the main thing.", author: "Stephen Covey", role: "Author, The 7 Habits of Highly Effective People" },
+  { text: "Seek first to understand, then to be understood.", author: "Stephen Covey", role: "Author, The 7 Habits of Highly Effective People" },
+  { text: "Leadership is not about being in charge. It is about taking care of those in your charge.", author: "Simon Sinek", role: "Author & Speaker" },
+  { text: "People don't buy what you do; they buy why you do it.", author: "Simon Sinek", role: "Author & Speaker" },
+  { text: "Start with why.", author: "Simon Sinek", role: "Author & Speaker" },
+  { text: "Working hard for something we don't care about is called stress; working hard for something we love is called passion.", author: "Simon Sinek", role: "Author & Speaker" },
+  { text: "The only thing standing between you and your goal is the story you keep telling yourself as to why you can't achieve it.", author: "Jordan Belfort", role: "Author & Speaker" },
+  { text: "It is not the strongest of the species that survive, nor the most intelligent, but the one most responsive to change.", author: "Charles Darwin", role: "Naturalist" },
+  { text: "The true sign of intelligence is not knowledge but imagination.", author: "Albert Einstein", role: "Physicist" },
+  { text: "Your time is limited, don't waste it living someone else's life.", author: "Steve Jobs", role: "Co-founder, Apple" },
+  { text: "The people who are crazy enough to think they can change the world are the ones who do.", author: "Steve Jobs", role: "Co-founder, Apple" },
+  { text: "Quality is not an act, it is a habit.", author: "Aristotle", role: "Philosopher" },
+  { text: "Pleasure in the job puts perfection in the work.", author: "Aristotle", role: "Philosopher" },
+  { text: "What we achieve inwardly will change outer reality.", author: "Plutarch", role: "Historian & Philosopher" },
+  { text: "The whole secret of a successful life is to find out what is one's destiny to do, and then do it.", author: "Henry Ford", role: "Founder, Ford Motor Company" },
+  { text: "I attribute my success to this: I never gave or took any excuse.", author: "Florence Nightingale", role: "Founder of Modern Nursing" },
+  { text: "Challenges are what make life interesting and overcoming them is what makes life meaningful.", author: "Joshua J. Marine", role: "Author" },
+  { text: "The best and most beautiful things in the world cannot be seen or even touched — they must be felt with the heart.", author: "Helen Keller", role: "Author & Activist" },
+  { text: "Alone we can do so little; together we can do so much.", author: "Helen Keller", role: "Author & Activist" },
+  { text: "Life is either a daring adventure or nothing at all.", author: "Helen Keller", role: "Author & Activist" },
+  { text: "Keep your face always toward the sunshine — and shadows will fall behind you.", author: "Walt Whitman", role: "Poet" },
+  { text: "The unexamined life is not worth living.", author: "Plato", role: "Philosopher" },
+  { text: "Good actions give strength to ourselves and inspire good actions in others.", author: "Plato", role: "Philosopher" },
+  { text: "Not how long, but how well you have lived is the main thing.", author: "Seneca", role: "Philosopher" },
+  { text: "Luck is what happens when preparation meets opportunity.", author: "Seneca", role: "Philosopher" },
+  { text: "We suffer more often in imagination than in reality.", author: "Seneca", role: "Philosopher" },
+  { text: "It is not that we have a short time to live, but that we waste a great deal of it.", author: "Seneca", role: "Philosopher" },
+  { text: "Difficulties strengthen the mind, as labor does the body.", author: "Seneca", role: "Philosopher" },
+  { text: "The obstacle is the way.", author: "Marcus Aurelius", role: "Roman Emperor & Philosopher" },
+  { text: "You have power over your mind — not outside events. Realize this, and you will find strength.", author: "Marcus Aurelius", role: "Roman Emperor & Philosopher" },
+  { text: "Waste no more time arguing about what a good man should be. Be one.", author: "Marcus Aurelius", role: "Roman Emperor & Philosopher" },
+  { text: "The happiness of your life depends upon the quality of your thoughts.", author: "Marcus Aurelius", role: "Roman Emperor & Philosopher" },
+  { text: "Very little is needed to make a happy life; it is all within yourself, in your way of thinking.", author: "Marcus Aurelius", role: "Roman Emperor & Philosopher" },
+  { text: "When you arise in the morning, think of what a precious privilege it is to be alive.", author: "Marcus Aurelius", role: "Roman Emperor & Philosopher" },
+  { text: "No man is free who is not master of himself.", author: "Epictetus", role: "Philosopher" },
+  { text: "First say to yourself what you would be; and then do what you have to do.", author: "Epictetus", role: "Philosopher" },
+  { text: "It's not what happens to you, but how you react to it that matters.", author: "Epictetus", role: "Philosopher" },
+  { text: "He who has a why to live can bear almost any how.", author: "Friedrich Nietzsche", role: "Philosopher" },
+  { text: "That which does not kill us makes us stronger.", author: "Friedrich Nietzsche", role: "Philosopher" },
+  { text: "Without music, life would be a mistake.", author: "Friedrich Nietzsche", role: "Philosopher" },
+  { text: "The only way to deal with an unfree world is to become so absolutely free that your very existence is an act of rebellion.", author: "Albert Camus", role: "Philosopher & Author" },
+  { text: "In the depth of winter, I finally learned that within me there lay an invincible summer.", author: "Albert Camus", role: "Philosopher & Author" },
+  { text: "One must imagine Sisyphus happy.", author: "Albert Camus", role: "Philosopher & Author" },
+  { text: "The greatest weapon against stress is our ability to choose one thought over another.", author: "William James", role: "Philosopher & Psychologist" },
+  { text: "If you can dream it, you can do it.", author: "Walt Disney", role: "Founder, The Walt Disney Company" },
+  { text: "The more that you read, the more things you will know. The more that you learn, the more places you'll go.", author: "Dr. Seuss", role: "Author & Illustrator" },
+  { text: "Don't cry because it's over, smile because it happened.", author: "Dr. Seuss", role: "Author & Illustrator" },
+  { text: "You have brains in your head. You have feet in your shoes. You can steer yourself any direction you choose.", author: "Dr. Seuss", role: "Author & Illustrator" },
+  { text: "In three words I can sum up everything I've learned about life: it goes on.", author: "Robert Frost", role: "Poet" },
+  { text: "Two roads diverged in a wood, and I took the one less traveled by, and that has made all the difference.", author: "Robert Frost", role: "Poet" },
+  { text: "The best way out is always through.", author: "Robert Frost", role: "Poet" },
+  { text: "Courage is not the absence of fear, but rather the assessment that something else is more important than fear.", author: "Franklin D. Roosevelt", role: "32nd President of the United States" },
+  { text: "A smooth sea never made a skilled sailor.", author: "Franklin D. Roosevelt", role: "32nd President of the United States" },
+  { text: "Darkness cannot drive out darkness; only light can do that. Hate cannot drive out hate; only love can do that.", author: "Martin Luther King Jr.", role: "Civil Rights Leader" },
+  { text: "The time is always right to do what is right.", author: "Martin Luther King Jr.", role: "Civil Rights Leader" },
+  { text: "Injustice anywhere is a threat to justice everywhere.", author: "Martin Luther King Jr.", role: "Civil Rights Leader" },
+  { text: "I have decided to stick with love. Hate is too great a burden to bear.", author: "Martin Luther King Jr.", role: "Civil Rights Leader" },
+  { text: "If you can't fly then run, if you can't run then walk, if you can't walk then crawl, but whatever you do you have to keep moving forward.", author: "Martin Luther King Jr.", role: "Civil Rights Leader" },
+  { text: "The power of imagination makes us infinite.", author: "John Muir", role: "Naturalist & Author" },
+  { text: "In every walk with nature, one receives far more than he seeks.", author: "John Muir", role: "Naturalist & Author" },
+  { text: "Logic will get you from A to B. Imagination will take you everywhere.", author: "Albert Einstein", role: "Physicist" },
+  { text: "I have learned over the years that when one's mind is made up, this diminishes fear.", author: "Rosa Parks", role: "Civil Rights Activist" },
+  { text: "Each person must live their life as a model for others.", author: "Rosa Parks", role: "Civil Rights Activist" },
+  { text: "The most common way people give up their power is by thinking they don't have any.", author: "Alice Walker", role: "Author & Activist" },
+  { text: "The only thing worse than being blind is having sight but no vision.", author: "Helen Keller", role: "Author & Activist" },
+  { text: "Think lightly of yourself and deeply of the world.", author: "Miyamoto Musashi", role: "Swordsman & Philosopher" },
+  { text: "There is nothing outside of yourself that can ever enable you to get better, stronger, richer, quicker, or smarter. Everything is within.", author: "Miyamoto Musashi", role: "Swordsman & Philosopher" },
+  { text: "Fall seven times, stand up eight.", author: "Japanese Proverb", role: "" },
+  { text: "Vision without action is merely a dream. Action without vision just passes the time. Vision with action can change the world.", author: "Joel A. Barker", role: "Futurist & Author" },
+  { text: "The measure of intelligence is the ability to change.", author: "Albert Einstein", role: "Physicist" },
+  { text: "He who opens a school door, closes a prison.", author: "Victor Hugo", role: "Author" },
+  { text: "Even the darkest night will end and the sun will rise.", author: "Victor Hugo", role: "Author" },
+  { text: "To love another person is to see the face of God.", author: "Victor Hugo", role: "Author" },
+  { text: "Do not go where the path may lead, go instead where there is no path and leave a trail.", author: "Ralph Waldo Emerson", role: "Essayist & Philosopher" },
+  { text: "What lies behind us and what lies ahead of us are tiny matters compared to what lives within us.", author: "Henry David Thoreau", role: "Philosopher & Author" },
+  { text: "How wonderful it is that nobody need wait a single moment before starting to improve the world.", author: "Anne Frank", role: "Diarist" },
+  { text: "Whoever is happy will make others happy too.", author: "Anne Frank", role: "Diarist" },
+  { text: "Everything has beauty, but not everyone sees it.", author: "Confucius", role: "Philosopher" },
+  { text: "The only true wisdom is in knowing you know nothing.", author: "Socrates", role: "Philosopher" },
+  { text: "Science is organized knowledge. Wisdom is organized life.", author: "Immanuel Kant", role: "Philosopher" },
+  { text: "Dare to know! Have the courage to use your own understanding.", author: "Immanuel Kant", role: "Philosopher" },
+  { text: "Simplicity is the ultimate sophistication.", author: "Leonardo da Vinci", role: "Polymath & Artist" },
+  { text: "Learning never exhausts the mind.", author: "Leonardo da Vinci", role: "Polymath & Artist" },
+  { text: "It had long since come to my attention that people of accomplishment rarely sat back and let things happen to them. They went out and happened to things.", author: "Leonardo da Vinci", role: "Polymath & Artist" },
+  { text: "The greatest glory in living lies not in never falling, but in rising every time we fall.", author: "Nelson Mandela", role: "Former President of South Africa" },
+  { text: "I never lose. I either win or learn.", author: "Nelson Mandela", role: "Former President of South Africa" },
+  { text: "It is better to lead from behind and to put others in front, especially when you celebrate victory.", author: "Nelson Mandela", role: "Former President of South Africa" },
+  { text: "What counts in life is not the mere fact that we have lived. It is what difference we have made to the lives of others.", author: "Nelson Mandela", role: "Former President of South Africa" },
+  { text: "Do not judge me by my successes, judge me by how many times I fell down and got back up again.", author: "Nelson Mandela", role: "Former President of South Africa" },
+  { text: "The successful warrior is the average man, with laser-like focus.", author: "Bruce Lee", role: "Martial Artist & Actor" },
+  { text: "Be water, my friend.", author: "Bruce Lee", role: "Martial Artist & Actor" },
+  { text: "Adapt what is useful, reject what is useless, and add what is specifically your own.", author: "Bruce Lee", role: "Martial Artist & Actor" },
+  { text: "I fear not the man who has practiced 10,000 kicks once, but I fear the man who has practiced one kick 10,000 times.", author: "Bruce Lee", role: "Martial Artist & Actor" },
+  { text: "Mistakes are the portals of discovery.", author: "James Joyce", role: "Author" },
+  { text: "The only limit to our realization of tomorrow is our doubts of today.", author: "Franklin D. Roosevelt", role: "32nd President of the United States" },
+  { text: "What you get by achieving your goals is not as important as what you become by achieving your goals.", author: "Zig Ziglar", role: "Author & Motivational Speaker" },
+  { text: "People often say that motivation doesn't last. Well, neither does bathing — that's why we recommend it daily.", author: "Zig Ziglar", role: "Author & Motivational Speaker" },
+  { text: "You were born to win, but to be a winner, you must plan to win, prepare to win, and expect to win.", author: "Zig Ziglar", role: "Author & Motivational Speaker" },
+  { text: "Success is stumbling from failure to failure with no loss of enthusiasm.", author: "Winston Churchill", role: "Former Prime Minister of the United Kingdom" },
+  { text: "Courage is what it takes to stand up and speak; courage is also what it takes to sit down and listen.", author: "Winston Churchill", role: "Former Prime Minister of the United Kingdom" },
+  { text: "We shape our buildings; thereafter they shape us.", author: "Winston Churchill", role: "Former Prime Minister of the United Kingdom" },
+  { text: "If you're going through hell, keep going.", author: "Winston Churchill", role: "Former Prime Minister of the United Kingdom" },
+  { text: "You must be the change you wish to see in the world.", author: "Mahatma Gandhi", role: "Leader of Indian Independence Movement" },
+  { text: "Live as if you were to die tomorrow. Learn as if you were to live forever.", author: "Mahatma Gandhi", role: "Leader of Indian Independence Movement" },
+  { text: "The best way to find yourself is to lose yourself in the service of others.", author: "Mahatma Gandhi", role: "Leader of Indian Independence Movement" },
+  { text: "An ounce of practice is worth more than tons of preaching.", author: "Mahatma Gandhi", role: "Leader of Indian Independence Movement" },
+  { text: "Strength does not come from physical capacity. It comes from an indomitable will.", author: "Mahatma Gandhi", role: "Leader of Indian Independence Movement" },
+  { text: "In a gentle way, you can shake the world.", author: "Mahatma Gandhi", role: "Leader of Indian Independence Movement" },
+  { text: "Where there is love there is life.", author: "Mahatma Gandhi", role: "Leader of Indian Independence Movement" },
+  { text: "The weak can never forgive. Forgiveness is the attribute of the strong.", author: "Mahatma Gandhi", role: "Leader of Indian Independence Movement" },
+  { text: "Talent wins games, but teamwork and intelligence win championships.", author: "Michael Jordan", role: "Basketball Legend" },
+  { text: "I can accept failure, everyone fails at something. But I can't accept not trying.", author: "Michael Jordan", role: "Basketball Legend" },
+  { text: "Some people want it to happen, some wish it would happen, others make it happen.", author: "Michael Jordan", role: "Basketball Legend" },
+  { text: "Champions keep playing until they get it right.", author: "Billie Jean King", role: "Tennis Champion" },
+  { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke", role: "Basketball Coach" },
+  { text: "Success is walking from failure to failure with no loss of enthusiasm.", author: "Winston Churchill", role: "Former Prime Minister of the United Kingdom" },
+  { text: "Don't count the days; make the days count.", author: "Muhammad Ali", role: "Boxing Champion" },
+  { text: "Float like a butterfly, sting like a bee.", author: "Muhammad Ali", role: "Boxing Champion" },
+  { text: "He who is not courageous enough to take risks will accomplish nothing in life.", author: "Muhammad Ali", role: "Boxing Champion" },
+  { text: "Impossible is just a big word thrown around by small men who find it easier to live in the world they've been given than to explore the power they have to change it.", author: "Muhammad Ali", role: "Boxing Champion" },
+  { text: "It isn't the mountains ahead to climb that wear you out; it's the pebble in your shoe.", author: "Muhammad Ali", role: "Boxing Champion" },
+  { text: "What lies in our power to do, lies in our power not to do.", author: "Aristotle", role: "Philosopher" },
+  { text: "Patience is bitter, but its fruit is sweet.", author: "Aristotle", role: "Philosopher" },
+  { text: "The energy of the mind is the essence of life.", author: "Aristotle", role: "Philosopher" },
+  { text: "Hope is a waking dream.", author: "Aristotle", role: "Philosopher" },
+  { text: "Well begun is half done.", author: "Aristotle", role: "Philosopher" },
+  { text: "One day or day one. You decide.", author: "Paulo Coelho", role: "Author" },
+  { text: "When you want something, all the universe conspires in helping you to achieve it.", author: "Paulo Coelho", role: "Author, The Alchemist" },
+  { text: "And, when you want something, all the universe conspires in helping you to achieve it.", author: "Paulo Coelho", role: "Author, The Alchemist" },
+  { text: "It is our choices that show what we truly are, far more than our abilities.", author: "J.K. Rowling", role: "Author" },
+  { text: "Rock bottom became the solid foundation on which I rebuilt my life.", author: "J.K. Rowling", role: "Author" },
+  { text: "It takes a great deal of bravery to stand up to our enemies, but just as much to stand up to our friends.", author: "J.K. Rowling", role: "Author" },
+  { text: "The world breaks everyone, and afterward, many are strong at the broken places.", author: "Ernest Hemingway", role: "Author & Journalist" },
+  { text: "There is nothing noble in being superior to your fellow man; true nobility is being superior to your former self.", author: "Ernest Hemingway", role: "Author & Journalist" },
+  { text: "Courage is grace under pressure.", author: "Ernest Hemingway", role: "Author & Journalist" },
+  { text: "The man who moves a mountain begins by carrying away small stones.", author: "Confucius", role: "Philosopher" },
+  { text: "Do not wait to strike till the iron is hot; but make it hot by striking.", author: "William Butler Yeats", role: "Poet" },
+  { text: "Education is not the filling of a pail, but the lighting of a fire.", author: "William Butler Yeats", role: "Poet" },
+  { text: "The only journey is the one within.", author: "Rainer Maria Rilke", role: "Poet" },
+  { text: "Let everything happen to you: beauty and terror. Just keep going. No feeling is final.", author: "Rainer Maria Rilke", role: "Poet" },
+  { text: "Kind words can be short and easy to speak, but their echoes are truly endless.", author: "Mother Teresa", role: "Humanitarian" },
+  { text: "If you judge people, you have no time to love them.", author: "Mother Teresa", role: "Humanitarian" },
+  { text: "Not all of us can do great things. But we can do small things with great love.", author: "Mother Teresa", role: "Humanitarian" },
+  { text: "Spread love everywhere you go. Let no one ever come to you without leaving happier.", author: "Mother Teresa", role: "Humanitarian" },
+  { text: "The bamboo that bends is stronger than the oak that resists.", author: "Japanese Proverb", role: "" },
+  { text: "The nail that sticks out gets hammered down.", author: "Japanese Proverb", role: "" },
+  { text: "After the rain, the earth hardens.", author: "Turkish Proverb", role: "" },
+  { text: "A cup of coffee commits one to forty years of friendship.", author: "Turkish Proverb", role: "" },
+  { text: "No matter how far you have gone on a wrong road, turn back.", author: "Turkish Proverb", role: "" },
+  { text: "Who seeks a friend without a fault remains without one.", author: "Turkish Proverb", role: "" },
+  { text: "Patience is the key to paradise.", author: "Turkish Proverb", role: "" },
+  { text: "If the wind will not serve, take to the oars.", author: "Latin Proverb", role: "" },
+  { text: "Fortune favors the bold.", author: "Virgil", role: "Roman Poet" },
+];
+
+function getCopiedIds() {
+  try {
+    return JSON.parse(localStorage.getItem('ds_copied_quotes') || '[]');
+  } catch { return []; }
+}
+
+function saveCopiedId(id) {
+  const ids = getCopiedIds();
+  if (!ids.includes(id)) {
+    ids.push(id);
+    localStorage.setItem('ds_copied_quotes', JSON.stringify(ids));
+  }
+}
+
+function getQuoteId(q) {
+  return q.author + '::' + q.text.substring(0, 40);
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function updateStats() {
+  const copied = getCopiedIds().length;
+  const remaining = quotes.filter(q => !getCopiedIds().includes(getQuoteId(q))).length;
+  document.getElementById('stats').innerHTML =
+    `<span>${remaining}</span> quotes remaining &middot; <span>${copied}</span> used`;
+}
+
+let currentQuotes = [];
+
+function render(selected) {
+  currentQuotes = selected;
+  const container = document.getElementById('quotes');
+
+  if (selected.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <h2>All quotes used!</h2>
+        <p>You've gone through all ${quotes.length} quotes. Reset the history to start fresh.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = selected.map((q, i) => `
+    <div class="quote-card" id="card-${i}">
+      <div class="quote-top">
+        <span class="quote-number">${i + 1}</span>
+        <button class="btn-copy" onclick="copyOne(${i})">
+          <span>Copy</span>
+        </button>
+      </div>
+      <p class="quote-text">${q.text}</p>
+      <p class="quote-author">— ${q.author}</p>
+      ${q.role ? `<p class="quote-role">${q.role}</p>` : ''}
+    </div>
+  `).join('');
+  updateStats();
+}
+
+function refresh() {
+  const copiedIds = getCopiedIds();
+  const available = quotes.filter(q => !copiedIds.includes(getQuoteId(q)));
+  const pick = shuffle(available).slice(0, 5);
+  render(pick);
+}
+
+function copyOne(index) {
+  const q = currentQuotes[index];
+  const text = `“${q.text}”\n— ${q.author}${q.role ? ', ' + q.role : ''}`;
+  navigator.clipboard.writeText(text);
+
+  saveCopiedId(getQuoteId(q));
+
+  const card = document.getElementById('card-' + index);
+  card.classList.add('copied');
+  const btn = card.querySelector('.btn-copy');
+  btn.classList.add('done');
+  btn.innerHTML = '<span>✓ Copied</span>';
+
+  updateStats();
+  showToast('Quote copied — it won’t appear again');
+}
+
+function resetHistory() {
+  if (confirm('Reset history? All quotes will become available again.')) {
+    localStorage.removeItem('ds_copied_quotes');
+    showToast('History cleared — all quotes available');
+    refresh();
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+refresh();
+</script>
+</body>
+</html>
