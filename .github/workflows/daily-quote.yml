@@ -2,14 +2,17 @@ name: Daily Quote Email
 
 on:
   schedule:
-    - cron: '0 6 * * *' # Every day at 6:00 AM UTC (9:00 AM Turkey time)
-  workflow_dispatch: # Allow manual trigger for testing
+    - cron: '0 6 * * *'
+  workflow_dispatch:
 
 jobs:
   send-quote:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install nodemailer
+        run: npm install nodemailer
 
       - name: Pick a random quote and send email
         uses: actions/github-script@v7
@@ -71,7 +74,7 @@ jobs:
             await transporter.sendMail({
               from: `"Daily Spark" <${process.env.GMAIL_USER}>`,
               to: process.env.GMAIL_USER,
-              subject: `✨ Daily Spark — "${quote.text.substring(0, 50)}..."`,
+              subject: `Daily Spark — "${quote.text.substring(0, 50)}..."`,
               html: emailHtml,
             });
 
